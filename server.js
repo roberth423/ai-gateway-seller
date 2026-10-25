@@ -5,13 +5,19 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
-import db from './db.js';
 import Stripe from 'stripe';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
+import db from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = new Hono();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2025-02-24.acacia' });
+
+let _stripe = null;
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  if (!_stripe) _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-02-24.acacia' });
+  return _stripe;
+};
 
 const PRICE_PER_TOKEN = parseFloat(process.env.PRICE_PER_TOKEN || '0.000002');
 const RATE_LIMIT_PER_MIN = 120;
@@ -97,6 +103,8 @@ app.get('/api/usage', (c) => {
 });
 
 app.post('/api/subscription/create', async (c) => {
+  const stripe = getStripe();
+  if (!stripe) return c.json({ error: 'Stripe not configured. Set STRIPE_SECRET_KEY.' }, 503);
   const user = c.get('user');
   const { plan } = await c.req.json();
   const priceId = plan === 'pro' ? process.env.STRIPE_PRO_PRICE_ID : process.env.STRIPE_PAYG_PRICE_ID;
@@ -113,6 +121,8 @@ app.post('/api/subscription/create', async (c) => {
 });
 
 app.post('/api/webhooks/stripe', async (c) => {
+  const stripe = getStripe();
+  if (!stripe) return c.json({ error: 'Stripe not configured.' }, 503);
   const sig = c.req.header('stripe-signature');
   let event;
   try {

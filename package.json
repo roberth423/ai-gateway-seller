@@ -18,5 +18,18 @@
     "pdfkit": "^0.15.0",
     "stripe": "^17.0.0",
     "rate-limiter-flexible": "^5.0.0"
-  }
+  },
+  "main": "db.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/ai-gateway-seller.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yourusername/ai-gateway-seller/issues"
+  },
+  "homepage": "https://github.com/yourusername/ai-gateway-seller#readme"
 }
