@@ -271,7 +271,7 @@ app.post('/v1/chat/completions', async (c) => {
   return c.json(data);
 });
 
-const port = parseInt(process.env.PORT || '8000', 10);
+const port = parseInt(process.env.PORT || '5050', 10);
 serve({ fetch: app.fetch, port }, () => {
   console.log(`AI Gateway running on port ${port}`);
 });
