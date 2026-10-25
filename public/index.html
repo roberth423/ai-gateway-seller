@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Gateway — One Key, All Models</title>
+<style>
+  :root{--bg:#0b0f17;--surface:#121826;--surface2:#1a2233;--border:#243049;--text:#e6edf7;--muted:#8b9bb4;--accent:#4f8cff;--accent2:#38bdf8;--green:#34d399;--red:#f87171;--yellow:#fbbf24}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+  a{color:var(--accent);text-decoration:none}
+  .container{max-width:1080px;margin:0 auto;padding:0 20px}
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 0;position:sticky;top:0;z-index:50}
+  nav .container{display:flex;align-items:center;justify-content:space-between}
+  .logo{font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
+  .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  .nav-links{display:flex;gap:16px;align-items:center}
+  .nav-links button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:6px 10px;border-radius:6px}
+  .nav-links button:hover,.nav-links button.active{color:var(--text);background:var(--surface2)}
+  .btn{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+  .btn:hover{background:#3b78f0}
+  .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+  .btn-outline:hover{border-color:var(--accent)}
+  .btn-sm{padding:5px 12px;font-size:13px}
+  .btn-danger{background:var(--red)}
+  .hero{padding:70px 0 50px;text-align:center}
+  .hero h1{font-size:44px;font-weight:800;margin-bottom:16px;background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{color:var(--muted);font-size:18px;max-width:640px;margin:0 auto 28px}
+  .hero .cta{display:flex;gap:12px;justify-content:center}
+  section{padding:40px 0}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px}
+  .card h2{font-size:20px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .card h3{font-size:15px;margin:18px 0 10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;overflow-x:auto;font-size:13px;font-family:'SF Mono',Consolas,monospace}
+  code{font-family:'SF Mono',Consolas,monospace;font-size:13px;color:var(--accent2)}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+  .field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.form-row{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  tr:hover td{background:var(--surface2)}
+  .table-wrap{overflow-x:auto}
+  .badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600}
+  .badge-green{background:rgba(52,211,153,.15);color:var(--green)}
+  .badge-red{background:rgba(248,113,113,.15);color:var(--red)}
+  .badge-yellow{background:rgba(251,191,36,.15);color:var(--yellow)}
+  .badge-blue{background:rgba(79,140,255,.15);color:var(--accent)}
+  .key-box{display:flex;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:monospace;font-size:13px}
+  .key-box span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .stat .label{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .stat .value{font-size:24px;font-weight:700}
+  .hidden{display:none!important}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);padding:12px 18px;border-radius:8px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;opacity:0;transform:translateY(10px);transition:.25s}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.err{border-left-color:var(--red)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:768px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <div class="logo"><span class="dot"></span> AI Gateway</div>
+    <div class="nav-links">
+      <button onclick="show('landing')" id="nav-landing" class="active">Home</button>
+      <button onclick="show('docs')" id="nav-docs">Docs</button>
+      <button onclick="show('auth')" id="nav-auth" class="hidden">Login</button>
+      <button onclick="show('dashboard')" id="nav-dashboard" class="hidden">Dashboard</button>
+      <button onclick="show('admin')" id="nav-admin" class="hidden">Admin</button>
+      <button onclick="logout()" id="nav-logout" class="hidden btn btn-sm btn-outline">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<section id="landing" class="hero">
+  <div class="container">
+    <h1>One API Key.<br>Every AI Model.</h1>
+    <p>Access GPT-4, Claude, Gemini, Llama and more through a single endpoint. Multi-provider routing, pay-as-you-go, no vendor lock-in.</p>
+    <div class="cta">
+      <button class="btn" onclick="show('auth')">Get Started</button>
+      <button class="btn btn-outline" onclick="show('docs')">View Docs</button>
+    </div>
+  </div>
+</section>
+
+<section id="docs" class="hidden">
+  <div class="container">
+    <div class="card">
+      <h2>📖 API Documentation</h2>
+      <p style="color:var(--muted);margin-bottom:16px">Base URL: <code id="base-url"></code></p>
+      <h3>Available Models</h3>
+      <div class="table-wrap"><table id="models-table">
+        <thead><tr><th>Provider</th><th>Model</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <h3>Chat Completion</h3>
+      <pre>curl <span id="doc-base"></span>/v1/chat/completions \
+  -H "Authorization: Bearer sk-YOUR-KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openrouter/gpt-4o",
+    "messages": [{"role":"user","content":"Hello!"}]
+  }'</pre>
+      <h3>Streaming</h3>
+      <pre>curl <span class="doc-base2"></span>/v1/chat/completions \
+  -H "Authorization: Bearer sk-YOUR-KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "openrouter/gpt-4o",
+    "messages": [{"role":"user","content":"Hello!"}],
+    "stream": true
+  }'</pre>
+      <h3>JavaScript / OpenAI SDK</h3>
+      <pre>import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: 'sk-YOUR-KEY',
+  baseURL: '<span class="doc-base2"></span>/v1'
+});
+
+const res = await client.chat.completions.create({
+  model: 'openrouter/gpt-4o',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});</pre>
+      <h3>Python / OpenAI SDK</h3>
+      <pre>from openai import OpenAI;
+
+client = OpenAI(
+    api_key='sk-YOUR-KEY',
+    base_url='<span class="doc-base2"></span>/v1'
+);
+
+res = client.chat.completions.create(
+    model='openrouter/gpt-4o',
+    messages=[{'role': 'user', 'content': 'Hello!'}]
+);</pre>
+    </div>
+  </div>
+</section>
+
+<section id="auth" class="hidden">
+  <div class="container" style="max-width:440px">
+    <div class="card">
+      <div style="display:flex;gap:0;margin-bottom:20px;background:var(--bg);border-radius:8px;padding:4px">
+        <button id="tab-login" onclick="authTab('login')" class="btn btn-sm" style="flex:1">Login</button>
+        <button id="tab-register" onclick="authTab('register')" class="btn btn-sm btn-outline" style="flex:1">Register</button>
+      </div>
+      <form id="login-form" onsubmit="return doLogin(event)">
+        <div class="field"><label>Username</label><input id="login-user" required autocomplete="username"></div>
+        <div class="field"><label>Password</label><input id="login-pass" type="password" required autocomplete="current-password"></div>
+        <button class="btn" style="width:100%">Login</button>
+      </form>
+      <form id="register-form" class="hidden" onsubmit="return doRegister(event)">
+        <div class="field"><label>Username</label><input id="reg-user" required minlength="3" autocomplete="username"></div>
+        <div class="field"><label>Password</label><input id="reg-pass" type="password" required minlength="6" autocomplete="new-password"></div>
+        <button class="btn" style="width:100%">Create Account</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section id="dashboard" class="hidden">
+  <div class="container">
+    <div class="stats">
+      <div class="stat"><div class="label">Balance</div><div class="value" id="dash-balance">$0.00</div></div>
+      <div class="stat"><div class="label">Total Requests</div><div class="value" id="dash-requests">0</div></div>
+      <div class="stat"><div class="label">Tokens Used</div><div class="value" id="dash-tokens">0</div></div>
+      <div class="stat"><div class="label">Total Spent</div><div class="value" id="dash-spent">$0.00</div></div>
+    </div>
+    <div class="card">
+      <h2>🔑 Your API Key</h2>
+      <div class="key-box"><span id="dash-key">—</span><button class="btn btn-sm btn-outline" onclick="copyKey()">Copy</button></div>
+      <p style="color:var(--muted);font-size:13px;margin-top:10px">Use this key in the <code>Authorization: Bearer</code> header. Base URL: <code id="dash-base"></code></p>
+    </div>
+    <div class="card">
+      <h2>📊 Recent Usage</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Time</th><th>Model</th><th>Provider</th><th>Prompt</th><th>Completion</th><th>Cost</th></tr></thead>
+        <tbody id="usage-body"><tr><td colspan="6" style="color:var(--muted)">No usage yet</td></tr></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>💳 Subscription</h2>
+      <button class="btn" onclick="createSubscription()">Create Subscription (PayG or Pro)</button>
+    </div>
+  </div>
+</section>
+
+<section id="admin" class="hidden">
+  <div class="container">
+    <div class="card">
+      <h2>👥 Users</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Balance</th><th>Created</th><th>Top Up</th></tr></thead>
+        <tbody id="admin-users"></tbody>
+      </table></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>🔌 Providers</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Name</th><th>Base URL</th><th>Models</th><th>Status</th><th></th></tr></thead>
+          <tbody id="admin-providers"></tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <h2>➕ Add Provider</h2>
+        <form onsubmit="return addProvider(event)">
+          <div class="field"><label>Name</label><input id="p-name" placeholder="MyProvider" required></div>
+          <div class="field"><label>Base URL</label><input id="p-url" placeholder="https://api.example.com/v1" required></div>
+          <div class="field"><label>API Key</label><input id="p-key" placeholder="sk-..." required></div>
+          <div class="field"><label>Models (comma separated)</label><input id="p-models" placeholder="model-a, model-b" required></div>
+          <button class="btn" style="width:100%">Add Provider</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const BASE = location.origin;
+let TOKEN = localStorage.getItem('ag_token') || '';
+let USER = JSON.parse(localStorage.getItem('ag_user') || 'null');
+
+document.getElementById('base-url').textContent = BASE;
+document.querySelectorAll('.doc-base2').forEach(e => e.textContent = BASE);
+document.getElementById('doc-base').textContent = BASE;
+document.getElementById('dash-base').textContent = BASE + '/v1';
+
+function show(id){
+  ['landing','docs','auth','dashboard','admin'].forEach(s=>document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  ['landing','docs','auth','dashboard','admin'].forEach(s=>document.getElementById('nav-'+s)?.classList.remove('active'));
+  document.getElementById('nav-'+id)?.classList.add('active');
+  if(id==='docs') loadModels();
+  if(id==='dashboard') loadDashboard();
+  if(id==='admin') loadAdmin();
+}
+
+function authTab(t){
+  document.getElementById('tab-login').className = 'btn btn-sm' + (t==='login'?'':' btn-outline');
+  document.getElementById('tab-register').className = 'btn btn-sm' + (t==='register'?'':' btn-outline');
+  document.getElementById('login-form').classList.toggle('hidden', t!=='login');
+  document.getElementById('register-form').classList.toggle('hidden', t!=='register');
+}
+
+function toast(msg, err){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err?' err':'');
+  setTimeout(()=>t.className='toast', 3000);
+}
+
+async function api(path, opts={}){
+  opts.headers = {...(opts.headers||{}), 'Content-Type':'application/json'};
+  if(TOKEN) opts.headers['Authorization'] = 'Bearer ' + TOKEN;
+  const res = await fetch(BASE + path, opts);
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+async function doLogin(e){
+  e.preventDefault();
+  try{
+    const d = await api('/api/login', {method:'POST', body:JSON.stringify({username: loginUser.value, password: loginPass.value})});
+    TOKEN = d.api_key; USER = d;
+    localStorage.setItem('ag_token', TOKEN);
+    localStorage.setItem('ag_user', JSON.stringify(d));
+    refreshNav(); show('dashboard'); toast('Logged in');
+  }catch(err){ toast(err.message, true); }
+  return false;
+}
+
+async function doRegister(e){
+  e.preventDefault();
+  try{
+    const d = await api('/api/register', {method:'POST', body:JSON.stringify({username: regUser.value, password: regPass.value})});
+    TOKEN = d.api_key; USER = d;
+    localStorage.setItem('ag_token', TOKEN);
+    localStorage.setItem('ag_user', JSON.stringify(d));
+    refreshNav(); show('dashboard'); toast('Account created');
+  }catch(err){ toast(err.message, true); }
+  return false;
+}
+
+function logout(){
+  TOKEN=''; USER=null;
+  localStorage.removeItem('ag_token'); localStorage.removeItem('ag_user');
+  refreshNav(); show('landing');
+}
+
+function refreshNav(){
+  const loggedIn = !!TOKEN;
+  document.getElementById('nav-auth').classList.toggle('hidden', loggedIn);
+  document.getElementById('nav-logout').classList.toggle('hidden', !loggedIn);
+  document.getElementById('nav-dashboard').classList.toggle('hidden', !loggedIn);
+  document.getElementById('nav-admin').classList.toggle('hidden', !loggedIn || USER?.role!=='admin');
+}
+
+async function loadModels(){
+  try{
+    const d = await api('/api/models');
+    document.querySelector('#models-table tbody').innerHTML = d.models.map(m=>`<tr><td><span class="badge badge-blue">${esc(m.provider)}</span></td><td><code>${esc(m.model)}</code></td></tr>`).join('') || '<tr><td colspan="2" style="color:var(--muted)">No models configured</td></tr>';
+  }catch(e){}
+}
+
+async function loadDashboard(){
+  try{
+    const me = await api('/api/me');
+    document.getElementById('dash-key').textContent = me.api_key;
+    document.getElementById('dash-balance').textContent = '$' + me.balance.toFixed(4);
+    const u = await api('/api/usage');
+    let reqs=0, tok=0, spent=0;
+    u.usage.forEach(r=>{ reqs++; tok += r.prompt_tokens + r.completion_tokens; spent += r.cost; });
+    document.getElementById('dash-requests').textContent = reqs;
+    document.getElementById('dash-tokens').textContent = tok.toLocaleString();
+    document.getElementById('dash-spent').textContent = '$' + spent.toFixed(4);
+    document.getElementById('usage-body').innerHTML = u.usage.map(r=>`<tr><td>${esc(r.created_at)}</td><td><code>${esc(r.model)}</code></td><td>${esc(r.provider_name||'—')}</td><td>${r.prompt_tokens}</td><td>${r.completion_tokens}</td><td>$${r.cost.toFixed(6)}</td></tr>`).join('') || '<tr><td colspan="6" style="color:var(--muted)">No usage yet</td></tr>';
+  }catch(e){ toast(e.message, true); }
+}
+
+function copyKey(){
+  navigator.clipboard.writeText(document.getElementById('dash-key').textContent);
+  toast('API key copied');
+}
+
+async function createSubscription(){
+  try{
+    await api('/api/subscription/create', {method:'POST', body:JSON.stringify({plan: prompt('Enter plan (payg or pro): ')})});
+    toast('Subscription checkout opened');
+  }catch(e){ toast(e.message, true); }
+}
+
+async function loadAdmin(){
+  try{
+    const [users, providers] = await Promise.all([api('/api/admin/users'), api('/api/admin/providers')]);
+    document.getElementById('admin-users').innerHTML = users.users.map(u=>`<tr>
+      <td>${u.id}</td><td>${esc(u.username)}</td>
+      <td><span class="badge ${u.role==='admin'?'badge-yellow':'badge-green'}">${u.role}</span></td>
+      <td>$${u.balance.toFixed(4)}</td><td>${esc(u.created_at)}</td>
+      <td>
+        <form onsubmit="return topup(event, ${u.id})" style="display:flex;gap:4px">
+          <input id="topup-${u.id}" type="number" step="0.01" min="0.01" placeholder="0.00" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px">
+          <button class="btn btn-sm">+</button>
+        </form>
+      </td>
+    </tr>`).join('');
+    document.getElementById('admin-providers').innerHTML = providers.providers.map(p=>`<tr>
+      <td>${esc(p.name)}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${esc(p.base_url)}</td>
+      <td>${JSON.parse(p.models).length} models</td>
+      <td><span class="badge ${p.enabled?'badge-green':'badge-red'}">${p.enabled?'on':'off'}</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline" onclick="toggleProvider(${p.id}, ${p.enabled?0:1})">${p.enabled?'Disable':'Enable'}</button>
+        <button class="btn btn-sm btn-danger" onclick="delProvider(${p.id})">Del</button>
+      </td>
+    </tr>`).join('');
+  }catch(e){ toast(e.message, true); }
+}
+
+async function topup(e, id){
+  e.preventDefault();
+  const amt = parseFloat(document.getElementById('topup-'+id).value);
+  if(!amt || amt<=0) return toast('Enter amount', true);
+  try{
+    await api('/api/admin/users/'+id+'/topup', {method:'POST', body:JSON.stringify({amount:amt})});
+    toast('Topped up $'+amt); loadAdmin();
+  }catch(err){ toast(err.message, true); }
+  return false;
+}
+
+async function addProvider(e){
+  e.preventDefault();
+  try{
+    await api('/api/admin/providers', {method:'POST', body:JSON.stringify({
+      name: document.getElementById('p-name').value,
+      base_url: document.getElementById('p-url').value,
+      api_key: document.getElementById('p-key').value,
+      models: document.getElementById('p-models').value.split(',').map(s=>s.trim()).filter(Boolean)
+    })});
+    toast('Provider added'); e.target.reset(); loadAdmin();
+  }catch(err){ toast(err.message, true); }
+  return false;
+}
+
+async function toggleProvider(id, enabled){
+  await api('/api/admin/providers/'+id, {method:'PATCH', body:JSON.stringify({enabled})});
+  loadAdmin();
+}
+
+async function delProvider(id){
+  if(!confirm('Delete this provider?')) return;
+  await api('/api/admin/providers/'+id, {method:'DELETE'});
+  toast('Provider deleted'); loadAdmin();
+}
+
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+refreshNav();
+if(TOKEN) show('dashboard'); else show('landing');
+</script>
+</body>
+</html>

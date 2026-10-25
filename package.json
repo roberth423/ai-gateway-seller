@@ -1,0 +1,22 @@
+{
+  "name": "ai-gateway-seller",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Sell AI model access via single API key. Multi-provider proxy gateway.",
+  "scripts": {
+    "start": "node server.js",
+    "stripe:listen": "stripe listen --forward-to https://your-railway-url.up.railway.app/api/webhooks/stripe"
+  },
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.6.0",
+    "hono": "^4.6.0",
+    "pdfkit": "^0.15.0",
+    "stripe": "^17.0.0",
+    "rate-limiter-flexible": "^5.0.0"
+  }
+}
